@@ -1,0 +1,1621 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClipClass - Aprende en 60 segundos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Inter', sans-serif; }
+        
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        .nav-btn.active svg, .nav-btn.active span { color: #ec4899; }
+        
+        .interest-btn.selected {
+            outline-width: 2px;
+            outline-style: solid;
+            outline-color: #ec4899;
+            box-shadow: 0 0 15px rgba(236, 72, 153, 0.5);
+            transform: scale(1.03);
+        }
+        
+        .btn { transition: all 0.2s ease-in-out; transform: translateZ(0); }
+        .btn:active { transform: scale(0.95); }
+
+        .action-btn.liked svg { fill: #ef4444; color: #ef4444; }
+        .action-btn.saved svg { fill: #f59e0b; color: #f59e0b; }
+        .action-btn.following { background-color: rgba(59, 130, 246, 0.1); color: #3b82f6; }
+
+        @keyframes button-pop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+            100% { transform: scale(1); }
+        }
+        .animate-pop { animation: button-pop 0.3s ease-out; }
+
+        @keyframes pulse-shadow {
+            0%, 100% { box-shadow: 0 0 20px rgba(236, 72, 153, 0.4); }
+            50% { box-shadow: 0 0 30px rgba(236, 72, 153, 0.7); }
+        }
+        .animate-pulse-shadow { animation: pulse-shadow 2.5s infinite; }
+
+        .text-shadow { text-shadow: 0px 2px 5px rgba(0, 0, 0, 0.7); }
+
+        @keyframes splash-fade-out {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+        .splash-fade-out {
+            animation: splash-fade-out 0.5s ease-out forwards;
+        }
+        @keyframes logo-pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.9; }
+        }
+        .animate-logo-pulse {
+            animation: logo-pulse 1.5s infinite ease-in-out;
+        }
+        
+        .bottom-sheet {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: auto;
+            background: #1f2937;
+            border-top-left-radius: 1.5rem;
+            border-top-right-radius: 1.5rem;
+            padding: 1.25rem;
+            z-index: 50;
+            transform: translateY(100%);
+            transition: transform 0.3s ease-out;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+        .bottom-sheet.show {
+            transform: translateY(0%);
+        }
+        
+        .backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 40;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+        .backdrop.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        
+        .toast {
+            position: fixed;
+            bottom: 5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #111827;
+            color: white;
+            padding: 0.5rem 1.25rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            z-index: 50;
+            transition: all 0.3s;
+            opacity: 0;
+            transform: translateY(20px) translateX(-50%);
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0) translateX(-50%);
+        }
+
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #ec4899, #f59e0b);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .scroll-snap-align-start {
+            scroll-snap-align: start;
+        }
+
+        .scroll-snap-type-y-mandatory {
+            scroll-snap-type: y mandatory;
+        }
+
+        .progress-bar {
+            height: 3px;
+            background: rgba(255, 255, 255, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 100%;
+            background: #ec4899;
+            transform: translateX(-100%);
+            animation: progress 60s linear infinite;
+        }
+
+        @keyframes progress {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(0); }
+        }
+
+        .dark-overlay {
+            background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 100%);
+        }
+
+        .notification-dot {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 8px;
+            height: 8px;
+            background: #ef4444;
+            border-radius: 50%;
+        }
+
+        .video-loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #ec4899;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        .play-button {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80px;
+            height: 80px;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 10;
+        }
+
+        .play-button:hover {
+            background: rgba(0, 0, 0, 0.9);
+            transform: translate(-50%, -50%) scale(1.1);
+        }
+
+        .play-button svg {
+            width: 30px;
+            height: 30px;
+            color: white;
+            margin-left: 5px;
+        }
+
+        .youtube-player {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .video-placeholder {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .video-unavailable {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: white;
+            z-index: 10;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .video-active {
+            z-index: 20;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white overflow-hidden">
+
+    <div class="relative max-w-lg mx-auto h-screen bg-black overflow-hidden shadow-2xl shadow-pink-500/10">
+
+        <!-- PANTALLA DE CARGA -->
+        <div id="page-loading" class="absolute inset-0 z-50 flex items-center justify-center bg-gray-900">
+            <div class="w-24 h-24 rounded-3xl bg-transparent flex items-center justify-center animate-logo-pulse">
+                <img src="https://i.ibb.co/qLggQSLV/logo.jpg" alt="ClipClass" class="w-16 h-16 rounded-lg">
+            </div>
+        </div>
+
+        <!-- SELECCIÓN DE INTERESES -->
+        <div id="page-interest" class="absolute inset-0 z-30 p-6 overflow-y-auto bg-gray-900 no-scrollbar hidden">
+            <div class="flex flex-col items-center justify-center min-h-full text-center">
+                <div class="mb-8">
+                    <div class="w-20 h-20 mx-auto rounded-2xl bg-transparent flex items-center justify-center">
+                        <img src="https://i.ibb.co/qLggQSLV/logo.jpg" alt="ClipClass" class="w-12 h-12 rounded-lg">
+                    </div>
+                    <h1 class="text-4xl font-bold mt-4 gradient-text">ClipClass</h1>
+                    <p class="text-lg text-gray-400 mt-2">Aprende algo nuevo en 60 segundos.</p>
+                </div>
+                <h2 class="text-2xl font-semibold mb-6">Elige tus intereses</h2>
+                
+                <div id="interest-grid" class="grid grid-cols-2 gap-4 w-full max-w-md">
+                    <!-- Los intereses se inyectarán aquí por JS -->
+                </div>
+                
+                <p id="interest-error-msg" class="text-red-400 font-semibold mt-4 hidden">
+                    ¡Por favor, selecciona al menos un interés!
+                </p>
+
+                <button id="start-learning-btn" class="btn w-full max-w-md bg-gradient-to-r from-pink-500 to-orange-500 text-white font-bold py-4 px-6 rounded-full mt-10 text-lg transition-transform transform hover:scale-105 animate-pulse-shadow">
+                    Comenzar a Aprender
+                </button>
+            </div>
+        </div>
+
+        <!-- FEED DE VIDEOS -->
+        <div id="page-feed" class="absolute inset-0 z-10 bg-black hidden">
+            <div class="absolute top-0 left-0 w-full flex justify-center items-center h-16 z-20 glass-effect">
+                <button id="tab-following" class="text-gray-400 font-semibold p-4">Siguiendo</button>
+                <button id="tab-for-you" class="text-white font-bold p-4 border-b-2 border-pink-500">Para Ti</button>
+                <button id="tab-search" class="text-gray-400 font-semibold p-4">
+                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                    </svg>
+                </button>
+            </div>
+
+            <div id="video-container" class="h-full w-full overflow-y-scroll no-scrollbar scroll-snap-type-y-mandatory">
+                <!-- Los videos se inyectarán aquí por JS -->
+            </div>
+        </div>
+
+        <!-- PÁGINA DE BÚSQUEDA -->
+        <div id="page-search" class="absolute inset-0 z-20 p-6 hidden overflow-y-auto bg-gray-900 no-scrollbar">
+            <div class="flex items-center mb-6">
+                <button id="back-from-search" class="mr-4 text-gray-400 hover:text-white">
+                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+                    </svg>
+                </button>
+                <h2 class="text-2xl font-bold">Buscar</h2>
+            </div>
+
+            <div class="relative mb-6">
+                <input type="text" id="search-input" placeholder="Buscar temas, creadores..." class="w-full bg-gray-800 rounded-full py-3 px-4 pl-12 text-white focus:outline-none focus:ring-2 focus:ring-pink-500">
+                <svg class="w-5 h-5 text-gray-400 absolute left-4 top-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                </svg>
+            </div>
+
+            <div class="mb-8">
+                <h3 class="text-lg font-semibold mb-4">Tendencias</h3>
+                <div class="flex flex-wrap gap-2">
+                    <span class="bg-gray-800 text-gray-300 px-3 py-1 rounded-full text-sm">#JavaScript</span>
+                    <span class="bg-gray-800 text-gray-300 px-3 py-1 rounded-full text-sm">#ReactJS</span>
+                    <span class="bg-gray-800 text-gray-300 px-3 py-1 rounded-full text-sm">#Python</span>
+                    <span class="bg-gray-800 text-gray-300 px-3 py-1 rounded-full text-sm">#DiseñoUX</span>
+                    <span class="bg-gray-800 text-gray-300 px-3 py-1 rounded-full text-sm">#MarketingDigital</span>
+                    <span class="bg-gray-800 text-gray-300 px-3 py-1 rounded-full text-sm">#InteligenciaArtificial</span>
+                </div>
+            </div>
+
+            <div>
+                <h3 class="text-lg font-semibold mb-4">Creadores populares</h3>
+                <div id="popular-creators" class="space-y-4">
+                    <!-- Los creadores se inyectarán aquí por JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- PERFIL DE USUARIO -->
+        <div id="page-profile" class="absolute inset-0 z-20 p-6 hidden overflow-y-auto bg-gray-900 no-scrollbar">
+            <div class="flex flex-col items-center mb-6">
+                <div class="relative">
+                    <img src="https://ui-avatars.com/api/?name=User+Edu&background=ec4899&color=fff&size=100&rounded=true" alt="Avatar" class="w-24 h-24 rounded-full border-4 border-pink-500">
+                    <div class="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-2 border-gray-900"></div>
+                </div>
+                <h2 class="text-2xl font-bold mt-4">@UsuarioEdu</h2>
+                <p class="text-gray-400">Amante del aprendizaje rápido</p>
+                
+                <!-- Estadísticas del perfil -->
+                <div class="flex space-x-6 mt-4 text-center">
+                    <div>
+                        <div class="font-bold">24</div>
+                        <div class="text-xs text-gray-400">Siguiendo</div>
+                    </div>
+                    <div>
+                        <div class="font-bold">156</div>
+                        <div class="text-xs text-gray-400">Seguidores</div>
+                    </div>
+                    <div>
+                        <div class="font-bold" id="saved-count">0</div>
+                        <div class="text-xs text-gray-400">Guardados</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="border-b border-gray-700 mb-4">
+                <nav class="flex justify-center -mb-px">
+                    <button class="py-4 px-6 border-b-2 border-pink-500 text-pink-500 font-semibold">
+                        <svg class="w-6 h-6 mx-auto" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 0111.186 0z" /></svg>
+                        <span class="text-sm">Guardados</span>
+                    </button>
+                </nav>
+            </div>
+            
+            <div id="saved-videos-grid" class="grid grid-cols-3 gap-2">
+                <!-- Los videos guardados se inyectarán aquí -->
+            </div>
+            
+            <div class="mt-8">
+                <h3 class="text-xl font-semibold mb-4">Editar Intereses</h3>
+                <div id="profile-interest-grid" class="flex flex-wrap gap-2">
+                    <!-- Los intereses del usuario se inyectarán aquí -->
+                </div>
+            </div>
+            
+            <div class="mt-8">
+                <h3 class="text-xl font-semibold mb-4">Idioma de preferencia</h3>
+                <div class="flex flex-wrap gap-2">
+                    <button id="lang-es" class="lang-btn btn text-sm py-2 px-4 rounded-full font-semibold bg-blue-600 selected">
+                        Español
+                    </button>
+                    <button id="lang-en" class="lang-btn btn text-sm py-2 px-4 rounded-full font-semibold bg-blue-600 opacity-50">
+                        English
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- BARRA DE NAVEGACIÓN INFERIOR -->
+        <nav id="nav-bar" class="absolute bottom-0 left-0 w-full glass-effect border-t border-gray-700 z-40 hidden">
+            <div class="flex justify-around items-center h-16">
+                <button id="nav-home-btn" class="nav-btn btn p-3 text-gray-400 active flex flex-col items-center">
+                    <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" /></svg>
+                    <span class="text-xs font-medium">Inicio</span>
+                </button>
+                <button id="nav-search-btn" class="nav-btn btn p-3 text-gray-400 flex flex-col items-center">
+                    <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" /></svg>
+                    <span class="text-xs font-medium">Buscar</span>
+                </button>
+                <button id="nav-notifications-btn" class="nav-btn btn p-3 text-gray-400 flex flex-col items-center relative">
+                    <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" /></svg>
+                    <span class="text-xs font-medium">Notificaciones</span>
+                    <div id="notification-dot" class="notification-dot hidden"></div>
+                </button>
+                <button id="nav-profile-btn" class="nav-btn btn p-3 text-gray-400 flex flex-col items-center">
+                    <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                    <span class="text-xs font-medium">Perfil</span>
+                </button>
+            </div>
+        </nav>
+        
+        <!-- PANELES Y NOTIFICACIONES -->
+        <div id="backdrop" class="backdrop"></div>
+        
+        <!-- Panel de Compartir -->
+        <div id="share-panel" class="bottom-sheet">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-lg font-semibold">Compartir</h3>
+                <button id="close-share" class="text-gray-400 hover:text-white">
+                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div class="grid grid-cols-4 gap-4 text-center">
+                <button class="flex flex-col items-center text-gray-300 hover:text-white transition-colors">
+                    <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center mb-2">
+                        <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893-.001-3.189-1.262-6.187-3.55-8.436"/></svg>
+                    </div>
+                    <span class="text-xs">WhatsApp</span>
+                </button>
+                <button class="flex flex-col items-center text-gray-300 hover:text-white transition-colors">
+                    <div class="w-12 h-12 bg-blue-400 rounded-full flex items-center justify-center mb-2">
+                        <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 a4.996 4.996 0 01-2.212.085 a4.936 4.936 0 004.604 3.417 a9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/></svg>
+                    </div>
+                    <span class="text-xs">Twitter</span>
+                </button>
+                <button class="flex flex-col items-center text-gray-300 hover:text-white transition-colors">
+                    <div class="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center mb-2">
+                        <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                    </div>
+                    <span class="text-xs">Facebook</span>
+                </button>
+                <button class="flex flex-col items-center text-gray-300 hover:text-white transition-colors">
+                    <div class="w-12 h-12 bg-gray-500 rounded-full flex items-center justify-center mb-2">
+                        <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 7.5V6.108c0-1.135.845-2.098 1.976-2.192.373-.03.748-.057 1.123-.08M15.75 18H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08M15.75 18.75v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5A3.375 3.375 0 006.375 7.5H5.25m11.9-3.664A2.251 2.251 0 0015 2.25h-1.5a2.251 2.251 0 00-2.15 1.586m5.8 0c.065.21.1.433.1.664v.75h-6V4.5c0-.231.035-.454.1-.664M6.75 7.5H4.875c-.621 0-1.125.504-1.125 1.125v12c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V16.5a9 9 0 00-9-9z" /></svg>
+                    </div>
+                    <span class="text-xs">Copiar</span>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Panel de Comentarios -->
+        <div id="comment-panel" class="bottom-sheet no-scrollbar">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-lg font-semibold">Comentarios (<span id="comment-count">0</span>)</h3>
+                <button id="close-comment" class="text-gray-400 hover:text-white">
+                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div class="space-y-4 mb-6">
+                <!-- Comentario 1 -->
+                <div class="flex items-start space-x-3">
+                    <img src="https://ui-avatars.com/api/?name=A+L&background=random&color=fff&size=40&rounded=true" alt="avatar" class="w-10 h-10 rounded-full">
+                    <div class="flex-1">
+                        <div class="flex justify-between items-center">
+                            <span class="font-semibold text-sm">@AprendeYa</span>
+                            <span class="text-xs text-gray-400">hace 5m</span>
+                        </div>
+                        <p class="text-sm mt-1">¡Wow, no sabía eso de React! Gracias. 🤯</p>
+                        <div class="flex space-x-4 mt-2 text-xs text-gray-400">
+                            <button class="flex items-center space-x-1 hover:text-white">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" /></svg>
+                                <span>12</span>
+                            </button>
+                            <button class="hover:text-white">Responder</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Comentario 2 -->
+                <div class="flex items-start space-x-3">
+                    <img src="https://ui-avatars.com/api/?name=C+D&background=random&color=fff&size=40&rounded=true" alt="avatar" class="w-10 h-10 rounded-full">
+                    <div class="flex-1">
+                        <div class="flex justify-between items-center">
+                            <span class="font-semibold text-sm">@DataGeek</span>
+                            <span class="text-xs text-gray-400">hace 1h</span>
+                        </div>
+                        <p class="text-sm mt-1">Muy bien explicado, ¿podrías hacer uno sobre SQL?</p>
+                        <div class="flex space-x-4 mt-2 text-xs text-gray-400">
+                            <button class="flex items-center space-x-1 hover:text-white">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" /></svg>
+                                <span>8</span>
+                            </button>
+                            <button class="hover:text-white">Responder</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Input de comentario -->
+            <div class="flex items-center space-x-2 mt-4">
+                <input type="text" placeholder="Añadir un comentario..." class="flex-1 bg-gray-700 rounded-full py-3 px-4 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500">
+                <button class="bg-pink-500 text-white rounded-full p-3 hover:bg-pink-600 transition-colors">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.875L6 12z" /></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Panel de Notificaciones -->
+        <div id="notifications-panel" class="bottom-sheet no-scrollbar">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-lg font-semibold">Notificaciones</h3>
+                <button id="close-notifications" class="text-gray-400 hover:text-white">
+                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div class="space-y-4">
+                <!-- Notificación 1 -->
+                <div class="flex items-start space-x-3">
+                    <img src="https://ui-avatars.com/api/?name=Tech+Guru&background=random&color=fff&size=40&rounded=true" alt="avatar" class="w-10 h-10 rounded-full">
+                    <div class="flex-1">
+                        <div class="flex justify-between items-center">
+                            <span class="font-semibold text-sm">@tech_guru</span>
+                            <span class="text-xs text-gray-400">hace 2h</span>
+                        </div>
+                        <p class="text-sm mt-1">Ha subido un nuevo video: "JavaScript Avanzado"</p>
+                    </div>
+                </div>
+                <!-- Notificación 2 -->
+                <div class="flex items-start space-x-3">
+                    <img src="https://ui-avatars.com/api/?name=Code+Master&background=random&color=fff&size=40&rounded=true" alt="avatar" class="w-10 h-10 rounded-full">
+                    <div class="flex-1">
+                        <div class="flex justify-between items-center">
+                            <span class="font-semibold text-sm">@code_master</span>
+                            <span class="text-xs text-gray-400">hace 5h</span>
+                        </div>
+                        <p class="text-sm mt-1">Ha comentado en tu video: "¡Excelente explicación!"</p>
+                    </div>
+                </div>
+                <!-- Notificación 3 -->
+                <div class="flex items-start space-x-3">
+                    <img src="https://ui-avatars.com/api/?name=Design+Pro&background=random&color=fff&size=40&rounded=true" alt="avatar" class="w-10 h-10 rounded-full">
+                    <div class="flex-1">
+                        <div class="flex justify-between items-center">
+                            <span class="font-semibold text-sm">@design_pro</span>
+                            <span class="text-xs text-gray-400">hace 1d</span>
+                        </div>
+                        <p class="text-sm mt-1">Te ha seguido</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Notificación Toast -->
+        <div id="toast-notification" class="toast">
+            Guardado en el perfil
+        </div>
+
+        <!-- SVG ICONS TEMPLATE -->
+        <div id="svg-templates" class="hidden">
+            <svg id="icon-like" class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" /></svg>
+            <svg id="icon-save" class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 0111.186 0z" /></svg>
+            <svg id="icon-comment" class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 20.25c.966 0 1.896-.166 2.733-.465a2.25 2.25 0 001.68-2.118v-2.923c.384-.13.752-.303 1.094-.519a2.25 2.25 0 001.213-2.043v-1.075a2.25 2.25 0 00-1.213-2.043 12.01 12.01 0 00-1.094-.519V7.838a2.25 2.25 0 00-1.68-2.118A11.963 11.963 0 0012 5.25c-.966 0-1.896.166-2.733.465a2.25 2.25 0 00-1.68 2.118v2.923c-.384-.13-.752-.303-1.094-.519a2.25 2.25 0 00-1.213 2.043v1.075c0 .969.52 1.825 1.213 2.043.342.216.71.39 1.094.519v2.923c0 .969.756 1.825 1.68 2.118A11.963 11.963 0 0012 20.25z" /></svg>
+            <svg id="icon-share" class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.875L6 12z" /></svg>
+            <svg id="icon-pause" class="w-16 h-16 text-white/70" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25v13.5m-7.5-13.5v13.5" /></svg>
+            <svg id="icon-play" class="w-16 h-16 text-white/70" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z" /></svg>
+        </div>
+
+    </div>
+
+    <script>
+        // DATOS DE PRUEBA CON VIDEOS 100% FUNCIONALES
+        const interests = [
+            { id: 'programming', name: 'Programación', color: 'bg-blue-600' },
+            { id: 'design', name: 'Diseño UX/UI', color: 'bg-purple-600' },
+            { id: 'marketing', name: 'Marketing', color: 'bg-emerald-600' },
+            { id: 'ia', name: 'Inteligencia Artificial', color: 'bg-indigo-600' },
+            { id: 'languages', name: 'Idiomas', color: 'bg-rose-600' },
+            { id: 'finance', name: 'Finanzas', color: 'bg-amber-600' },
+            { id: 'science', name: 'Ciencia', color: 'bg-cyan-600' },
+            { id: 'history', name: 'Historia', color: 'bg-yellow-700' },
+        ];
+        
+        // VIDEOS CORREGIDOS - CON EMBED CORRECTO
+        const allVideos = [
+            // PROGRAMACIÓN
+            { 
+                id: 1, 
+                youtubeId: 'rfscVS0vtbw',
+                thumbnail: 'https://img.youtube.com/vi/rfscVS0vtbw/maxresdefault.jpg', 
+                author: '@code_master', 
+                title: 'Python en 60 Segundos', 
+                description: 'Aprende variables y tipos de datos en Python 🐍', 
+                tags: ['programming'], 
+                comments: 24, 
+                likes: 1500
+            },
+            { 
+                id: 2, 
+                youtubeId: 'W6NZfCO5SIk',
+                thumbnail: 'https://img.youtube.com/vi/W6NZfCO5SIk/maxresdefault.jpg', 
+                author: '@js_ninja', 
+                title: 'JavaScript Fundamentos', 
+                description: 'Domina los conceptos básicos de JS en 1 minuto ⚡', 
+                tags: ['programming'], 
+                comments: 42, 
+                likes: 2300
+            },
+            // DISEÑO UX/UI - VIDEO ACTUALIZADO
+            { 
+                id: 3, 
+                youtubeId: 'gR8oG1_QTwo',
+                thumbnail: 'https://img.youtube.com/vi/gR8oG1_QTwo/maxresdefault.jpg', 
+                author: '@design_pro', 
+                title: 'Figma Básico', 
+                description: 'Primeros pasos en diseño de interfaces 🎨', 
+                tags: ['design'], 
+                comments: 67, 
+                likes: 1800
+            },
+            // MARKETING
+            { 
+                id: 4, 
+                youtubeId: 'El3IZFGERbM',
+                thumbnail: 'https://img.youtube.com/vi/El3IZFGERbM/maxresdefault.jpg', 
+                author: '@market_guru', 
+                title: 'SEO Básico', 
+                description: 'Posiciona tu web en Google 🔍', 
+                tags: ['marketing'], 
+                comments: 89, 
+                likes: 1900
+            },
+            // INTELIGENCIA ARTIFICIAL
+            { 
+                id: 5, 
+                youtubeId: 'JMUxmLyrhSk',
+                thumbnail: 'https://img.youtube.com/vi/JMUxmLyrhSk/maxresdefault.jpg', 
+                author: '@ia_explorer', 
+                title: 'Introducción a IA', 
+                description: '¿Qué es la inteligencia artificial? 🤖', 
+                tags: ['ia'], 
+                comments: 134, 
+                likes: 3200
+            },
+            // IDIOMAS - VIDEO ACTUALIZADO CON EL QUE SOLICITASTE
+            { 
+                id: 6, 
+                youtubeId: 'VWtRTdP9VMc',
+                thumbnail: 'https://img.youtube.com/vi/VWtRTdP9VMc/maxresdefault.jpg', 
+                author: '@polyglot_pete', 
+                title: 'Frases Esenciales en Inglés', 
+                description: 'Aprende las frases más útiles en 60 segundos 🗣️', 
+                tags: ['languages'], 
+                comments: 45, 
+                likes: 1200
+            },
+            // FINANZAS - VIDEO ACTUALIZADO
+            { 
+                id: 7, 
+                youtubeId: 'zkOaCfv9esg',
+                thumbnail: 'https://img.youtube.com/vi/zkOaCfv9esg/maxresdefault.jpg', 
+                author: '@finance_bro', 
+                title: 'Inversiones Básicas', 
+                description: 'Cómo empezar a invertir dinero 📈', 
+                tags: ['finance'], 
+                comments: 112, 
+                likes: 2900
+            },
+            // CIENCIA
+            { 
+                id: 8, 
+                youtubeId: 'libKVRa01L8',
+                thumbnail: 'https://img.youtube.com/vi/libKVRa01L8/maxresdefault.jpg', 
+                author: '@sci_facts', 
+                title: 'El Sistema Solar', 
+                description: 'Viaje por nuestros planetas 🪐', 
+                tags: ['science'], 
+                comments: 156, 
+                likes: 3400
+            }
+        ];
+
+        // Videos de creadores que puedes seguir
+        const followingVideos = [
+            { 
+                id: 101, 
+                youtubeId: 'SWYqp7iY_Tc',
+                thumbnail: 'https://img.youtube.com/vi/SWYqp7iY_Tc/maxresdefault.jpg', 
+                author: '@tech_guru', 
+                title: 'Git en 60 Segundos', 
+                description: 'Control de versiones para desarrolladores 🔥', 
+                tags: ['programming'], 
+                comments: 203, 
+                likes: 4500,
+                following: true
+            },
+            { 
+                id: 102, 
+                youtubeId: 'sByzHoiYFX0',
+                thumbnail: 'https://img.youtube.com/vi/sByzHoiYFX0/maxresdefault.jpg', 
+                author: '@design_expert', 
+                title: 'Tipografía Web', 
+                description: 'Elige las mejores fuentes para tu sitio 📝', 
+                tags: ['design'], 
+                comments: 156, 
+                likes: 3200,
+                following: true
+            }
+        ];
+
+        // Creadores populares para la búsqueda
+        const popularCreators = [
+            { name: '@tech_guru', followers: '125K', category: 'Programación' },
+            { name: '@design_expert', followers: '89K', category: 'Diseño UX/UI' },
+            { name: '@data_scientist', followers: '76K', category: 'Ciencia de Datos' },
+            { name: '@code_master', followers: '210K', category: 'Programación' },
+            { name: '@ux_queen', followers: '95K', category: 'Diseño UX/UI' }
+        ];
+
+        // ==================================================
+        // ESTADO DE LA APLICACIÓN (State)
+        // ==================================================
+        let appState = {
+            userInterests: [],
+            userLanguage: 'es',
+            feedVideos: [],
+            likedVideoIds: new Set(),
+            savedVideoIds: new Set([1, 2, 5]),
+            followedUsers: new Set(['@tech_guru', '@design_expert', '@data_scientist']),
+            activePage: 'loading',
+            currentVideo: null,
+            youtubePlayers: new Map(),
+            activeTab: 'for-you',
+            hasNotifications: true,
+            currentPlayingVideo: null
+        };
+
+        // ==================================================
+        // DOM ELEMENTOS
+        // ==================================================
+        const pageLoading = document.getElementById('page-loading');
+        const pageInterest = document.getElementById('page-interest');
+        const pageFeed = document.getElementById('page-feed');
+        const pageProfile = document.getElementById('page-profile');
+        const pageSearch = document.getElementById('page-search');
+        const navBar = document.getElementById('nav-bar');
+        const startLearningBtn = document.getElementById('start-learning-btn');
+        const interestGrid = document.getElementById('interest-grid');
+        const profileInterestGrid = document.getElementById('profile-interest-grid');
+        const videoContainer = document.getElementById('video-container');
+        const savedVideosGrid = document.getElementById('saved-videos-grid');
+        const navHomeBtn = document.getElementById('nav-home-btn');
+        const navSearchBtn = document.getElementById('nav-search-btn');
+        const navNotificationsBtn = document.getElementById('nav-notifications-btn');
+        const navProfileBtn = document.getElementById('nav-profile-btn');
+        const interestErrorMsg = document.getElementById('interest-error-msg');
+        const svgTemplates = document.getElementById('svg-templates');
+        const backdrop = document.getElementById('backdrop');
+        const sharePanel = document.getElementById('share-panel');
+        const commentPanel = document.getElementById('comment-panel');
+        const notificationsPanel = document.getElementById('notifications-panel');
+        const commentCountEl = document.getElementById('comment-count');
+        const toastNotification = document.getElementById('toast-notification');
+        const tabFollowing = document.getElementById('tab-following');
+        const tabForYou = document.getElementById('tab-for-you');
+        const tabSearch = document.getElementById('tab-search');
+        const closeShare = document.getElementById('close-share');
+        const closeComment = document.getElementById('close-comment');
+        const closeNotifications = document.getElementById('close-notifications');
+        const backFromSearch = document.getElementById('back-from-search');
+        const searchInput = document.getElementById('search-input');
+        const popularCreatorsContainer = document.getElementById('popular-creators');
+        const notificationDot = document.getElementById('notification-dot');
+        const savedCount = document.getElementById('saved-count');
+        const langEs = document.getElementById('lang-es');
+        const langEn = document.getElementById('lang-en');
+
+        let videoObserver = null;
+        let toastTimer = null;
+
+        // ==================================================
+        // FUNCIONES DE RENDERIZADO (UI)
+        // ==================================================
+
+        function toggleInterest(event) {
+            if (interestErrorMsg && !interestErrorMsg.classList.contains('hidden')) {
+                interestErrorMsg.classList.add('hidden');
+            }
+            const button = event.currentTarget;
+            button.classList.toggle('selected');
+            
+            const selectedInterests = document.querySelectorAll('.interest-btn.selected');
+            if (selectedInterests.length > 0) {
+                interestErrorMsg.classList.add('hidden');
+            }
+        }
+
+        function renderInterestGrid() {
+            if (!interestGrid) return;
+            interestGrid.innerHTML = '';
+            interests.forEach(interest => {
+                const button = document.createElement('button');
+                button.className = `interest-btn btn w-full p-4 rounded-lg font-semibold ${interest.color}`;
+                button.textContent = interest.name;
+                button.dataset.tag = interest.id;
+                button.addEventListener('click', toggleInterest);
+                interestGrid.appendChild(button);
+            });
+        }
+
+        function renderFeed() {
+            console.log("Intereses del usuario:", appState.userInterests);
+            console.log("Todos los videos:", allVideos);
+            
+            if (appState.activeTab === 'for-you') {
+                appState.feedVideos = allVideos.filter(video => 
+                    video.tags.some(tag => appState.userInterests.includes(tag))
+                );
+            } else {
+                appState.feedVideos = followingVideos.filter(video => 
+                    appState.followedUsers.has(video.author)
+                );
+            }
+            
+            console.log("Videos filtrados:", appState.feedVideos);
+            
+            appState.feedVideos.sort(() => Math.random() - 0.5);
+
+            if (appState.feedVideos.length === 0) {
+                videoContainer.innerHTML = 
+                    `<div class="h-full w-full flex flex-col justify-center items-center text-center p-8 snap-start">
+                        <h2 class="text-2xl font-bold mb-4">¡Oops!</h2>
+                        <p class="text-gray-400 mb-6">No encontramos videos para tus intereses. Intenta seleccionar otros.</p>
+                        <button onclick="showPage('profile')" class="btn bg-pink-500 text-white font-semibold py-2 px-6 rounded-full">
+                            Editar Intereses
+                        </button>
+                    </div>`;
+                return;
+            }
+            
+            videoContainer.innerHTML = '';
+            appState.youtubePlayers.clear();
+            appState.feedVideos.forEach(video => {
+                const videoElement = createVideoElement(video);
+                videoContainer.appendChild(videoElement);
+            });
+
+            // Configurar Intersection Observer para pausar videos fuera de vista
+            setupVideoObserver();
+        }
+
+        function createActionButton(iconId, text, videoId, actionType, initialClass = '') {
+            const btn = document.createElement('button');
+            btn.className = `action-btn btn relative flex flex-col items-center text-white ${initialClass} pointer-events-auto`;
+            btn.dataset.videoId = videoId;
+            btn.dataset.action = actionType;
+
+            const icon = svgTemplates.querySelector(`#${iconId}`).cloneNode(true);
+            icon.id = '';
+            btn.appendChild(icon);
+
+            const span = document.createElement('span');
+            span.className = 'text-xs font-semibold text-shadow';
+            span.textContent = text;
+            btn.appendChild(span);
+
+            return btn;
+        }
+
+        function createVideoElement(video) {
+            const videoWrapper = document.createElement('div');
+            videoWrapper.className = 'relative h-full w-full scroll-snap-align-start';
+            videoWrapper.dataset.videoId = video.id;
+
+            // Placeholder con thumbnail
+            const videoPlaceholder = document.createElement('div');
+            videoPlaceholder.className = 'video-placeholder';
+            videoPlaceholder.style.backgroundImage = `url(${video.thumbnail})`;
+            
+            // Botón de reproducción
+            const playButton = document.createElement('div');
+            playButton.className = 'play-button';
+            const playIcon = svgTemplates.querySelector('#icon-play').cloneNode(true);
+            playIcon.id = '';
+            playButton.appendChild(playIcon);
+            
+            // Indicador de carga
+            const loadingIndicator = document.createElement('div');
+            loadingIndicator.className = 'video-loading hidden';
+            
+            // Mensaje de video no disponible
+            const unavailableMessage = document.createElement('div');
+            unavailableMessage.className = 'video-unavailable hidden';
+            unavailableMessage.innerHTML = `
+                <p class="text-lg font-semibold">Video no disponible</p>
+                <p class="text-sm text-gray-300 mt-2">Este contenido no está disponible en este momento</p>
+                <button class="mt-3 bg-pink-500 text-white px-4 py-2 rounded-full text-sm hover:bg-pink-600 transition-colors" onclick="this.parentElement.classList.add('hidden')">
+                    Entendido
+                </button>
+            `;
+            
+            // Barra de progreso
+            const progressBar = document.createElement('div');
+            progressBar.className = 'progress-bar';
+            
+            const infoOverlay = document.createElement('div');
+            infoOverlay.className = 'absolute bottom-16 left-0 w-full p-4 dark-overlay pointer-events-none';
+            infoOverlay.innerHTML = 
+                `<h3 class="text-lg font-bold text-shadow">${video.author}</h3>
+                <p class="text-sm text-shadow">${video.title} - ${video.description}</p>`;
+
+            // Botones de acción (Like, Save, Share)
+            const actions = document.createElement('div');
+            actions.className = 'absolute bottom-24 right-2 flex flex-col items-center space-y-4 z-30';
+            
+            const likeBtn = createActionButton('icon-like', kFormatter(video.likes), video.id, 'like', appState.likedVideoIds.has(video.id) ? 'liked' : '');
+            const commentBtn = createActionButton('icon-comment', kFormatter(video.comments), video.id, 'comment');
+            const saveBtn = createActionButton('icon-save', 'Guardar', video.id, 'save', appState.savedVideoIds.has(video.id) ? 'saved' : '');
+            const shareBtn = createActionButton('icon-share', 'Compartir', video.id, 'share');
+
+            // Botón de seguir (solo en la pestaña "Para Ti")
+            if (appState.activeTab === 'for-you' && !appState.followedUsers.has(video.author)) {
+                const followBtn = document.createElement('button');
+                followBtn.className = 'action-btn btn relative flex flex-col items-center text-white pointer-events-auto';
+                followBtn.dataset.videoId = video.id;
+                followBtn.dataset.action = 'follow';
+                followBtn.dataset.author = video.author;
+                
+                const followIcon = document.createElement('div');
+                followIcon.className = 'w-8 h-8 rounded-full bg-white/20 flex items-center justify-center';
+                followIcon.innerHTML = '<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>';
+                followBtn.appendChild(followIcon);
+                
+                const followText = document.createElement('span');
+                followText.className = 'text-xs font-semibold text-shadow';
+                followText.textContent = 'Seguir';
+                followBtn.appendChild(followText);
+                
+                actions.appendChild(followBtn);
+            }
+
+            actions.appendChild(likeBtn);
+            actions.appendChild(commentBtn);
+            actions.appendChild(saveBtn);
+            actions.appendChild(shareBtn);
+
+            // Evento para el botón de reproducción
+            playButton.addEventListener('click', (e) => {
+                e.stopPropagation();
+                handleVideoPlay(video.id, video.youtubeId, videoWrapper, playButton, loadingIndicator, unavailableMessage);
+            });
+
+            videoWrapper.appendChild(videoPlaceholder);
+            videoWrapper.appendChild(loadingIndicator);
+            videoWrapper.appendChild(unavailableMessage);
+            videoWrapper.appendChild(playButton);
+            videoWrapper.appendChild(progressBar);
+            videoWrapper.appendChild(infoOverlay);
+            videoWrapper.appendChild(actions);
+
+            return videoWrapper;
+        }
+
+        function setupVideoObserver() {
+            if (videoObserver) {
+                videoObserver.disconnect();
+            }
+
+            videoObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    const videoId = entry.target.dataset.videoId;
+                    const iframe = appState.youtubePlayers.get(videoId);
+                    
+                    if (entry.isIntersecting) {
+                        // Video entra en vista
+                        entry.target.classList.add('video-active');
+                        if (iframe) {
+                            // Reactivar el video si estaba pausado
+                            try {
+                                iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+                            } catch (e) {
+                                console.log('No se pudo reanudar el video:', videoId);
+                            }
+                        }
+                    } else {
+                        // Video sale de vista
+                        entry.target.classList.remove('video-active');
+                        if (iframe && appState.currentPlayingVideo !== videoId) {
+                            // Pausar video que no está siendo reproducido activamente
+                            try {
+                                iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+                            } catch (e) {
+                                console.log('No se pudo pausar el video:', videoId);
+                            }
+                        }
+                    }
+                });
+            }, {
+                threshold: 0.7 // Cuando el 70% del video está visible
+            });
+
+            // Observar todos los videos
+            document.querySelectorAll('[data-video-id]').forEach(video => {
+                videoObserver.observe(video);
+            });
+        }
+
+        function handleVideoPlay(videoId, youtubeId, videoWrapper, playButton, loadingIndicator, unavailableMessage) {
+            
+            if (appState.currentPlayingVideo && appState.currentPlayingVideo !== videoId) {
+                const currentIframe = appState.youtubePlayers.get(appState.currentPlayingVideo.toString());
+                if (currentIframe) {
+                    try {
+                        currentIframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+                    } catch (e) {
+                        console.log('No se pudo pausar el video anterior');
+                    }
+                }
+            }
+
+            // Ocultar el botón de reproducción y mostrar el indicador de carga
+            playButton.classList.add('hidden');
+            loadingIndicator.classList.remove('hidden');
+            
+            // Crear el iframe de YouTube con configuración corregida
+            const iframe = document.createElement('iframe');
+            iframe.className = 'youtube-player';
+            
+            // URL CORREGIDA - Sin autoplay automático, mejor control
+            iframe.src = `https://www.youtube.com/embed/${youtubeId}?enablejsapi=1&controls=0&modestbranding=1&rel=0&showinfo=0&iv_load_policy=3&playsinline=1`;
+            iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+            iframe.allowFullscreen = true;
+            
+            // Agregar el iframe al contenedor
+            videoWrapper.appendChild(iframe);
+            
+            // Guardar referencia al reproductor
+            appState.youtubePlayers.set(videoId.toString(), iframe);
+            appState.currentPlayingVideo = videoId;
+
+            // Configurar el evento de carga
+            iframe.onload = () => {
+                loadingIndicator.classList.add('hidden');
+                
+                // Reproducir el video después de que se cargue
+                setTimeout(() => {
+                    try {
+                        iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+                    } catch (e) {
+                        console.log('Error al reproducir automáticamente:', e);
+                        // Mostrar botón de play si falla la reproducción automática
+                        playButton.classList.remove('hidden');
+                    }
+                }, 1000);
+            };
+            
+            iframe.onerror = () => {
+                loadingIndicator.classList.add('hidden');
+                unavailableMessage.classList.remove('hidden');
+                playButton.classList.remove('hidden');
+                iframe.remove();
+                console.log('Error cargando video:', youtubeId);
+            };
+
+            // Manejar errores de la API de YouTube
+            window.onYouTubeIframeAPIReady = function() {
+                console.log('YouTube API lista');
+            };
+        }
+
+        function triggerButtonPop(buttonElement) {
+            buttonElement.classList.add('animate-pop');
+            buttonElement.addEventListener('animationend', () => {
+                buttonElement.classList.remove('animate-pop');
+            }, { once: true });
+        }
+
+        function updateActionButtons(videoId, actionType) {
+            const btn = document.querySelector(`.action-btn[data-video-id="${videoId}"][data-action="${actionType}"]`);
+            if (!btn) return;
+
+            const video = allVideos.find(v => v.id === videoId) || followingVideos.find(v => v.id === videoId);
+            if (!video) return;
+
+            if (actionType === 'like') {
+                const isLiked = appState.likedVideoIds.has(videoId);
+                isLiked ? btn.classList.add('liked') : btn.classList.remove('liked');
+                
+                const countEl = btn.querySelector('span');
+                if (countEl) {
+                    let originalCount = parseInt(countEl.dataset.originalCount || video.likes);
+                    if (!countEl.dataset.originalCount) {
+                        countEl.dataset.originalCount = video.likes;
+                    }
+                    
+                    if (isLiked) {
+                        countEl.textContent = kFormatter(originalCount + 1);
+                    } else {
+                        countEl.textContent = kFormatter(originalCount);
+                    }
+                }
+
+            } else if (actionType === 'save') {
+                 appState.savedVideoIds.has(videoId) ? btn.classList.add('saved') : btn.classList.remove('saved');
+                 if (appState.savedVideoIds.has(videoId)) {
+                     showToast("Guardado en el perfil");
+                 }
+                 renderSavedVideos();
+            } else if (actionType === 'follow') {
+                const author = btn.dataset.author;
+                if (appState.followedUsers.has(author)) {
+                    appState.followedUsers.delete(author);
+                    btn.querySelector('span').textContent = 'Seguir';
+                    btn.classList.remove('following');
+                } else {
+                    appState.followedUsers.add(author);
+                    btn.querySelector('span').textContent = 'Siguiendo';
+                    btn.classList.add('following');
+                    showToast(`Ahora sigues a ${author}`);
+                }
+            }
+            
+            triggerButtonPop(btn);
+        }
+
+        function renderProfileInterests() {
+            if (!profileInterestGrid) return;
+            profileInterestGrid.innerHTML = '';
+            
+            interests.forEach(interest => {
+                const isSelected = appState.userInterests.includes(interest.id);
+                const button = document.createElement('button');
+                button.className = `interest-btn btn text-sm py-2 px-4 rounded-full font-semibold ${interest.color} ${isSelected ? 'selected' : 'opacity-50'}`;
+                button.textContent = interest.name;
+                button.dataset.tag = interest.id;
+
+                button.addEventListener('click', function() {
+                    const tag = this.dataset.tag;
+                    console.log('Clic en:', tag, 'Estado actual:', appState.userInterests);
+                    
+                    if (appState.userInterests.includes(tag)) {
+                        // Si ya está seleccionado y hay más de 1 interés, lo quitamos
+                        if (appState.userInterests.length > 1) {
+                            appState.userInterests = appState.userInterests.filter(t => t !== tag);
+                            this.classList.remove('selected');
+                            this.classList.add('opacity-50');
+                        } else {
+                            // Si es el último interés, mostramos animación pero no lo quitamos
+                            this.classList.add('animate-pop');
+                            setTimeout(() => {
+                                this.classList.remove('animate-pop');
+                            }, 300);
+                        }
+                    } else {
+                        // Si no está seleccionado, lo agregamos
+                        appState.userInterests.push(tag);
+                        this.classList.add('selected');
+                        this.classList.remove('opacity-50');
+                    }
+                    
+                    console.log('Nuevos intereses:', appState.userInterests);
+                    renderFeed();
+                });
+                
+                profileInterestGrid.appendChild(button);
+            });
+        }
+
+        function renderSavedVideos() {
+            if (!savedVideosGrid) return;
+            const savedVideos = [...allVideos, ...followingVideos].filter(video => 
+                appState.savedVideoIds.has(video.id)
+            );
+            
+            // Actualizar el contador de guardados
+            if (savedCount) {
+                savedCount.textContent = savedVideos.length;
+            }
+            
+            if (savedVideos.length === 0) {
+                savedVideosGrid.innerHTML = '<p class="text-gray-500 col-span-3 text-center mt-4">Aún no has guardado videos.</p>';
+                return;
+            }
+            
+            savedVideosGrid.innerHTML = '';
+            savedVideos.forEach(video => {
+                const videoCard = document.createElement('div');
+                videoCard.className = 'relative bg-gray-800 rounded-lg overflow-hidden';
+                videoCard.innerHTML = `
+                    <img src="${video.thumbnail}" alt="${video.title}" class="w-full h-32 object-cover">
+                    <div class="p-2">
+                        <h4 class="text-sm font-semibold truncate">${video.title}</h4>
+                        <p class="text-xs text-gray-400 truncate">${video.author}</p>
+                    </div>
+                    <button class="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1" onclick="removeFromSaved(${video.id})">
+                        <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                `;
+                savedVideosGrid.appendChild(videoCard);
+            });
+        }
+
+        // Función para eliminar video de guardados
+        function removeFromSaved(videoId) {
+            appState.savedVideoIds.delete(videoId);
+            renderSavedVideos();
+            showToast("Eliminado de guardados");
+            
+            // Actualizar también el botón de guardar en el feed si está visible
+            const saveBtn = document.querySelector(`.action-btn[data-video-id="${videoId}"][data-action="save"]`);
+            if (saveBtn) {
+                saveBtn.classList.remove('saved');
+            }
+        }
+
+        function renderPopularCreators() {
+            if (!popularCreatorsContainer) return;
+            
+            popularCreatorsContainer.innerHTML = '';
+            popularCreators.forEach(creator => {
+                const creatorElement = document.createElement('div');
+                creatorElement.className = 'flex items-center justify-between p-3 bg-gray-800 rounded-lg';
+                
+                creatorElement.innerHTML = `
+                    <div class="flex items-center space-x-3">
+                        <img src="https://ui-avatars.com/api/?name=${creator.name.replace('@', '')}&background=random&color=fff&size=40&rounded=true" alt="avatar" class="w-10 h-10 rounded-full">
+                        <div>
+                            <div class="font-semibold">${creator.name}</div>
+                            <div class="text-xs text-gray-400">${creator.category} • ${creator.followers} seguidores</div>
+                        </div>
+                    </div>
+                    <button class="follow-creator-btn bg-pink-500 text-white text-xs font-semibold py-1 px-3 rounded-full hover:bg-pink-600 transition-colors" data-creator="${creator.name}">
+                        ${appState.followedUsers.has(creator.name) ? 'Siguiendo' : 'Seguir'}
+                    </button>
+                `;
+                
+                popularCreatorsContainer.appendChild(creatorElement);
+            });
+        }
+
+        // ==================================================
+        // LÓGICA DE NAVEGACIÓN Y ESTADO
+        // ==================================================
+
+        function showPage(pageId) {
+            console.log('Mostrando página:', pageId);
+            
+            // Ocultar todas las páginas
+            [pageLoading, pageInterest, pageFeed, pageProfile, pageSearch].forEach(page => {
+                if (page) page.classList.add('hidden');
+            });
+
+            // Mostrar la página solicitada
+            const targetPage = document.getElementById(`page-${pageId}`);
+            if (targetPage) {
+                targetPage.classList.remove('hidden');
+            }
+
+            // Manejar la barra de navegación
+            if (navBar) {
+                if (pageId === 'feed' || pageId === 'profile' || pageId === 'search') {
+                    navBar.classList.remove('hidden');
+                } else {
+                    navBar.classList.add('hidden');
+                }
+            }
+            
+            // Actualizar estado de botones de navegación
+            [navHomeBtn, navSearchBtn, navNotificationsBtn, navProfileBtn].forEach(btn => {
+                if (btn) btn.classList.remove('active');
+            });
+            
+            if (pageId === 'feed' && navHomeBtn) {
+                navHomeBtn.classList.add('active');
+            } else if (pageId === 'search' && navSearchBtn) {
+                navSearchBtn.classList.add('active');
+            } else if (pageId === 'profile' && navProfileBtn) {
+                navProfileBtn.classList.add('active');
+                renderSavedVideos();
+                renderProfileInterests();
+            }
+
+            appState.activePage = pageId;
+        }
+
+        function handleLike(videoId) {
+            if (appState.likedVideoIds.has(videoId)) {
+                appState.likedVideoIds.delete(videoId);
+            } else {
+                appState.likedVideoIds.add(videoId);
+            }
+            updateActionButtons(videoId, 'like');
+        }
+
+        function handleSave(videoId) {
+            if (appState.savedVideoIds.has(videoId)) {
+                appState.savedVideoIds.delete(videoId);
+            } else {
+                appState.savedVideoIds.add(videoId);
+            }
+            updateActionButtons(videoId, 'save');
+        }
+        
+        function handleShare(videoId) {
+            openBottomSheet(sharePanel);
+        }
+        
+        function handleComment(videoId) {
+            const video = allVideos.find(v => v.id === videoId) || followingVideos.find(v => v.id === videoId);
+            if(video && commentCountEl) {
+                commentCountEl.textContent = kFormatter(video.comments);
+            }
+            openBottomSheet(commentPanel);
+        }
+        
+        function handleFollow(author) {
+            updateActionButtons(null, 'follow', author);
+        }
+
+        function openBottomSheet(panel) {
+            if (!backdrop || !panel) {
+                console.error('Backdrop o Panel no encontrado. No se puede abrir.');
+                return;
+            }
+            backdrop.classList.add('show');
+            panel.classList.add('show');
+        }
+
+        function closeBottomSheet() {
+            if (!backdrop || !sharePanel || !commentPanel || !notificationsPanel) {
+                console.error('Backdrop o Paneles no encontrados. No se puede cerrar.');
+                return;
+            }
+            backdrop.classList.remove('show');
+            sharePanel.classList.remove('show');
+            commentPanel.classList.remove('show');
+            notificationsPanel.classList.remove('show');
+        }
+
+        function showToast(message) {
+            if (toastTimer) clearTimeout(toastTimer);
+            if (!toastNotification) return;
+            toastNotification.textContent = message;
+            toastNotification.classList.add('show');
+            toastTimer = setTimeout(() => {
+                toastNotification.classList.remove('show');
+            }, 2000);
+        }
+        
+        function kFormatter(num) {
+            return Math.abs(num) > 999 ? Math.sign(num)*((Math.abs(num)/1000).toFixed(1)) + 'K' : Math.sign(num)*Math.abs(num)
+        }
+
+        function switchTab(tab) {
+            appState.activeTab = tab;
+            
+            if (tab === 'for-you') {
+                tabForYou.classList.add('text-white', 'border-b-2', 'border-pink-500');
+                tabForYou.classList.remove('text-gray-400');
+                tabFollowing.classList.add('text-gray-400');
+                tabFollowing.classList.remove('text-white', 'border-b-2', 'border-pink-500');
+            } else {
+                tabFollowing.classList.add('text-white', 'border-b-2', 'border-pink-500');
+                tabFollowing.classList.remove('text-gray-400');
+                tabForYou.classList.add('text-gray-400');
+                tabForYou.classList.remove('text-white', 'border-b-2', 'border-pink-500');
+            }
+            
+            renderFeed();
+        }
+
+        // ==================================================
+        // INICIALIZACIÓN DE LA APP
+        // ==================================================
+
+        function initApp() {
+            console.log('Inicializando aplicación...');
+            
+            // Mostrar pantalla de carga por 2 segundos, luego ir a intereses
+            setTimeout(() => {
+                if (pageLoading) {
+                    pageLoading.classList.add('splash-fade-out');
+                    setTimeout(() => {
+                        showPage('interest');
+                        renderInterestGrid();
+                        renderPopularCreators();
+                        renderSavedVideos();
+                        
+                        // Mostrar notificación si hay
+                        if (appState.hasNotifications && notificationDot) {
+                            notificationDot.classList.remove('hidden');
+                        }
+                    }, 500); // Esperar a que termine la animación de fade out
+                } else {
+                    showPage('interest');
+                    renderInterestGrid();
+                    renderPopularCreators();
+                    renderSavedVideos();
+                }
+            }, 2000);
+
+            // LÓGICA DE CLIC DELEGADA para los botones de acción
+            if (videoContainer) {
+                videoContainer.addEventListener('click', (e) => {
+                    const actionButton = e.target.closest('.action-btn');
+                    if (!actionButton) return;
+                    
+                    e.stopPropagation();
+                    
+                    const { action, videoId, author } = actionButton.dataset;
+                    
+                    if (!videoId && !author) return;
+                    
+                    if (videoId) {
+                        const videoIdNum = parseInt(videoId, 10);
+                        if (isNaN(videoIdNum)) return;
+
+                        switch (action) {
+                            case 'like':
+                                handleLike(videoIdNum);
+                                break;
+                            case 'comment':
+                                handleComment(videoIdNum);
+                                break;
+                            case 'save':
+                                handleSave(videoIdNum);
+                                break;
+                            case 'share':
+                                handleShare(videoIdNum);
+                                break;
+                            case 'follow':
+                                handleFollow(author);
+                                break;
+                            default:
+                                console.warn('Acción desconocida:', action);
+                        }
+                    } else if (author) {
+                        handleFollow(author);
+                    }
+                });
+            }
+
+            if (startLearningBtn) {
+                startLearningBtn.addEventListener('click', () => {
+                    const selectedTags = Array.from(document.querySelectorAll('.interest-btn.selected')).map(btn => btn.dataset.tag);
+                    console.log("Intereses seleccionados:", selectedTags);
+                    
+                    if (selectedTags.length === 0) {
+                        if (interestErrorMsg) interestErrorMsg.classList.remove('hidden');
+                        return;
+                    }
+                    if (interestErrorMsg) interestErrorMsg.classList.add('hidden');
+
+                    appState.userInterests = selectedTags;
+                    renderFeed();
+                    renderProfileInterests();
+                    showPage('feed');
+                });
+            }
+
+            if (navHomeBtn) {
+                navHomeBtn.addEventListener('click', () => {
+                    if (appState.activePage === 'feed') return;
+                    showPage('feed');
+                });
+            }
+            
+            if (navSearchBtn) {
+                navSearchBtn.addEventListener('click', () => {
+                    if (appState.activePage === 'search') return;
+                    showPage('search');
+                });
+            }
+            
+            if (navNotificationsBtn) {
+                navNotificationsBtn.addEventListener('click', () => {
+                    openBottomSheet(notificationsPanel);
+                    // Marcar notificaciones como leídas
+                    appState.hasNotifications = false;
+                    if (notificationDot) notificationDot.classList.add('hidden');
+                });
+            }
+            
+            if (navProfileBtn) {
+                navProfileBtn.addEventListener('click', () => {
+                    if (appState.activePage === 'profile') return;
+                    showPage('profile');
+                });
+            }
+            
+            if(backdrop) {
+                backdrop.addEventListener('click', closeBottomSheet);
+            }
+            
+            if (closeShare) {
+                closeShare.addEventListener('click', closeBottomSheet);
+            }
+            
+            if (closeComment) {
+                closeComment.addEventListener('click', closeBottomSheet);
+            }
+            
+            if (closeNotifications) {
+                closeNotifications.addEventListener('click', closeBottomSheet);
+            }
+            
+            if (backFromSearch) {
+                backFromSearch.addEventListener('click', () => {
+                    showPage('feed');
+                });
+            }
+            
+            if (tabFollowing) {
+                tabFollowing.addEventListener('click', () => switchTab('following'));
+            }
+            
+            if (tabForYou) {
+                tabForYou.addEventListener('click', () => switchTab('for-you'));
+            }
+            
+            if (tabSearch) {
+                tabSearch.addEventListener('click', () => {
+                    showPage('search');
+                });
+            }
+            
+            // Event listener para seguir creadores desde la búsqueda
+            if (popularCreatorsContainer) {
+                popularCreatorsContainer.addEventListener('click', (e) => {
+                    if (e.target.classList.contains('follow-creator-btn')) {
+                        const creator = e.target.dataset.creator;
+                        if (appState.followedUsers.has(creator)) {
+                            appState.followedUsers.delete(creator);
+                            e.target.textContent = 'Seguir';
+                            e.target.classList.remove('bg-blue-500');
+                            e.target.classList.add('bg-pink-500');
+                        } else {
+                            appState.followedUsers.add(creator);
+                            e.target.textContent = 'Siguiendo';
+                            e.target.classList.remove('bg-pink-500');
+                            e.target.classList.add('bg-blue-500');
+                            showToast(`Ahora sigues a ${creator}`);
+                        }
+                    }
+                });
+            }
+            
+            // Event listener para búsqueda
+            if (searchInput) {
+                searchInput.addEventListener('input', (e) => {
+                    const searchTerm = e.target.value.toLowerCase();
+                    console.log('Buscando:', searchTerm);
+                });
+            }
+            
+            // Event listeners para selección de idioma en el perfil
+            if (langEs && langEn) {
+                langEs.addEventListener('click', function() {
+                    appState.userLanguage = 'es';
+                    langEs.classList.add('selected');
+                    langEs.classList.remove('opacity-50');
+                    langEn.classList.remove('selected');
+                    langEn.classList.add('opacity-50');
+                    showToast('Idioma cambiado a Español');
+                });
+                
+                langEn.addEventListener('click', function() {
+                    appState.userLanguage = 'en';
+                    langEn.classList.add('selected');
+                    langEn.classList.remove('opacity-50');
+                    langEs.classList.remove('selected');
+                    langEs.classList.add('opacity-50');
+                    showToast('Language changed to English');
+                });
+            }
+        }
+
+        // Hacer la función removeFromSaved global para que funcione en los botones
+        window.removeFromSaved = removeFromSaved;
+
+        // Inicializar la aplicación cuando el DOM esté listo
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initApp);
+        } else {
+            initApp();
+        }
+
+    </script>
+</body>
+</html>
